@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#7a3e12">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Dulce Churros">
+  <title>Dulce Churros</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>Dulce Churros</h1>
+  </header>
+
+  <main>
+    <!-- VENDER -->
+    <section id="vista-vender" class="vista activa">
+      <div id="botones-menu" class="botones-menu"></div>
+
+      <div class="orden">
+        <h2>Orden actual</h2>
+        <ul id="orden-lista" class="orden-lista"></ul>
+        <p id="orden-vacia" class="vacio">Toca un producto para agregarlo.</p>
+      </div>
+
+      <div class="barra-cobro">
+        <div class="total-orden">
+          <span>Total</span>
+          <strong id="orden-total">$0</strong>
+        </div>
+        <button id="btn-limpiar" class="btn btn-secundario" type="button">Borrar</button>
+        <button id="btn-cobrar" class="btn btn-principal" type="button" disabled>Cobrar</button>
+      </div>
+    </section>
+
+    <!-- VENTAS -->
+    <section id="vista-ventas" class="vista">
+      <div class="selector-dia">
+        <button id="dia-anterior" class="btn btn-icono" type="button" aria-label="Día anterior">‹</button>
+        <div class="dia-actual">
+          <strong id="dia-titulo">Hoy</strong>
+          <span id="dia-fecha"></span>
+        </div>
+        <button id="dia-siguiente" class="btn btn-icono" type="button" aria-label="Día siguiente">›</button>
+      </div>
+
+      <div class="tarjetas">
+        <div class="tarjeta">
+          <span>Órdenes</span>
+          <strong id="res-ordenes">0</strong>
+        </div>
+        <div class="tarjeta">
+          <span>Total vendido</span>
+          <strong id="res-total">$0</strong>
+        </div>
+      </div>
+
+      <h2>Productos vendidos</h2>
+      <ul id="res-productos" class="lista-resumen"></ul>
+
+      <h2>Ventas del día</h2>
+      <ul id="res-ventas" class="lista-ventas"></ul>
+      <p id="res-vacio" class="vacio">No hay ventas este día.</p>
+    </section>
+
+    <!-- AJUSTES -->
+    <section id="vista-ajustes" class="vista">
+      <h2>Menú y precios (MXN)</h2>
+      <form id="form-menu" class="form-menu"></form>
+
+      <h2>Respaldo</h2>
+      <p class="ayuda">Las ventas se guardan solo en este teléfono. Descarga un respaldo seguido.</p>
+      <button id="btn-exportar" class="btn btn-secundario btn-ancho" type="button">Descargar ventas (Excel / CSV)</button>
+
+      <h2>Zona de peligro</h2>
+      <button id="btn-borrar-todo" class="btn btn-peligro btn-ancho" type="button">Borrar todas las ventas</button>
+    </section>
+  </main>
+
+  <nav class="tabs">
+    <button class="tab activa" data-vista="vender" type="button"><span>🛒</span>Vender</button>
+    <button class="tab" data-vista="ventas" type="button"><span>📊</span>Ventas</button>
+    <button class="tab" data-vista="ajustes" type="button"><span>⚙️</span>Ajustes</button>
+  </nav>
+
+  <!-- COBRAR -->
+  <dialog id="dlg-cobrar" class="hoja">
+    <h2>Cobrar</h2>
+    <div class="cobro-total">
+      <span>Total a pagar</span>
+      <strong id="cobro-total">$0</strong>
+    </div>
+    <p class="etiqueta">¿Con cuánto paga?</p>
+    <div id="cobro-billetes" class="billetes"></div>
+    <label class="campo">
+      <span>Otra cantidad</span>
+      <input id="cobro-recibido" type="number" inputmode="numeric" min="0" step="1" placeholder="0">
+    </label>
+    <div class="cobro-cambio">
+      <span>Cambio</span>
+      <strong id="cobro-cambio">$0</strong>
+    </div>
+    <p id="cobro-falta" class="aviso" hidden></p>
+    <div class="acciones">
+      <button id="btn-cancelar-cobro" class="btn btn-secundario" type="button">Cancelar</button>
+      <button id="btn-confirmar-cobro" class="btn btn-principal" type="button">Guardar venta</button>
+    </div>
+  </dialog>
+
+  <div id="aviso" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
