@@ -61,6 +61,7 @@
           <strong id="res-total">$0</strong>
         </div>
       </div>
+      <p id="res-dolares" class="nota-dolares" hidden></p>
 
       <h2>Productos vendidos</h2>
       <ul id="res-productos" class="lista-resumen"></ul>
@@ -72,6 +73,20 @@
 
     <!-- AJUSTES -->
     <section id="vista-ajustes" class="vista">
+      <h2>Tipo de cambio</h2>
+      <form id="form-tasa" class="form-tasa">
+        <label class="campo">
+          <span>¿Cuántos pesos vale 1 dólar?</span>
+          <div class="tasa-fila">
+            <strong>1 dólar =</strong>
+            <input id="tasa-valor" name="tasa" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="17" required>
+            <strong>pesos</strong>
+          </div>
+        </label>
+        <p id="tasa-actualizada" class="ayuda"></p>
+        <button class="btn btn-principal btn-ancho" type="submit">Guardar tipo de cambio</button>
+      </form>
+
       <h2>Menú y precios (MXN)</h2>
       <form id="form-menu" class="form-menu"></form>
 
@@ -93,24 +108,35 @@
   <!-- COBRAR -->
   <dialog id="dlg-cobrar" class="hoja">
     <h2>Cobrar</h2>
+    <p class="etiqueta">¿Cómo paga?</p>
+    <div id="cobro-moneda" class="moneda" role="group" aria-label="Moneda de pago">
+      <button type="button" data-moneda="MXN">🇲🇽 Pesos</button>
+      <button type="button" data-moneda="USD">🇺🇸 Dólares</button>
+    </div>
+    <p id="cobro-sin-tasa" class="aviso" hidden>Primero pon el tipo de cambio en Ajustes.</p>
     <div class="cobro-total">
       <span>Total a pagar</span>
-      <strong id="cobro-total">$0</strong>
+      <div class="cifra">
+        <strong id="cobro-total">$0</strong>
+        <small id="cobro-equivalente" hidden></small>
+      </div>
     </div>
     <p class="etiqueta">¿Con cuánto paga?</p>
     <div id="cobro-billetes" class="billetes"></div>
     <label class="campo">
-      <span>Otra cantidad</span>
+      <span id="cobro-recibido-etiqueta">Otra cantidad</span>
       <input id="cobro-recibido" type="number" inputmode="numeric" min="0" step="1" placeholder="0">
     </label>
-    <div class="cobro-cambio">
-      <span>Cambio</span>
-      <strong id="cobro-cambio">$0</strong>
-    </div>
-    <p id="cobro-falta" class="aviso" hidden></p>
-    <div class="acciones">
-      <button id="btn-cancelar-cobro" class="btn btn-secundario" type="button">Cancelar</button>
-      <button id="btn-confirmar-cobro" class="btn btn-principal" type="button">Guardar venta</button>
+    <div class="pie-cobro">
+      <div class="cobro-cambio">
+        <span id="cobro-cambio-etiqueta">Cambio</span>
+        <strong id="cobro-cambio">$0</strong>
+      </div>
+      <p id="cobro-falta" class="aviso" hidden></p>
+      <div class="acciones">
+        <button id="btn-cancelar-cobro" class="btn btn-secundario" type="button">Cancelar</button>
+        <button id="btn-confirmar-cobro" class="btn btn-principal" type="button">Guardar venta</button>
+      </div>
     </div>
   </dialog>
 

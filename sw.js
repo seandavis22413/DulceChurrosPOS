@@ -1,6 +1,6 @@
 // Guarda la app en el teléfono para que funcione sin internet.
 // Sube la versión cada vez que cambien los archivos para que el teléfono descargue lo nuevo.
-const VERSION = 'dulcechurros-v1';
+const VERSION = 'dulcechurros-v2';
 const ARCHIVOS = [
   './',
   'index.html',

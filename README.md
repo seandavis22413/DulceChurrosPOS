@@ -6,10 +6,13 @@ Punto de venta sencillo para el teléfono. Registra cada venta de churros y malt
 
 - **Vender:** botones grandes para Orden de Churros ($100), Churros con Helado ($120) y Malteada ($120). Ajusta cantidades con − / +.
 - **Cobrar:** muestra el total, el cliente elige con cuánto paga (Exacto, $200, $500…) y la app calcula el cambio.
-- **Ventas:** número de órdenes, total vendido y unidades por producto, por día (flechas ‹ › para ver días anteriores). Se puede borrar una venta hecha por error.
-- **Ajustes:** cambiar nombres y precios, descargar las ventas como CSV (se abre en Excel o Google Sheets) y borrar todo.
+  Si paga en **dólares**, toca *Dólares*: el total se convierte con el tipo de cambio guardado
+  (redondeado hacia arriba al centavo), eliges el billete (US$5, US$10, US$20…) y la app calcula el **cambio en pesos**.
+- **Ventas:** número de órdenes, total vendido (en pesos), unidades por producto y cuántos dólares en efectivo se recibieron, por día (flechas ‹ › para ver días anteriores). Se puede borrar una venta hecha por error.
+- **Ajustes:** poner el **tipo de cambio** (1 dólar = X pesos), cambiar nombres y precios, descargar las ventas como CSV (se abre en Excel o Google Sheets) y borrar todo.
 - Funciona **sin internet** y se instala en la pantalla de inicio.
-- Todo en pesos (MXN). La conversión a dólares queda para una versión futura.
+- Los precios y totales son en pesos (MXN). Cada venta en dólares guarda el tipo de cambio que se usó,
+  así cambiarlo después no altera ventas pasadas.
 
 > Las ventas se guardan **solo en el teléfono** donde se usa la app. Descarga el respaldo CSV seguido.
 > Si borras los datos del navegador o desinstalas la app, se pierden las ventas.

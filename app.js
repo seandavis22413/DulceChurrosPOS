@@ -4,6 +4,7 @@
 
 const CLAVE_MENU = 'dulcechurros.menu';
 const CLAVE_VENTAS = 'dulcechurros.ventas';
+const CLAVE_TASA = 'dulcechurros.tipoCambio';
 
 const MENU_INICIAL = [
   { id: 'churros', nombre: 'Orden de Churros', precio: 100, emoji: '🥖' },
@@ -11,7 +12,7 @@ const MENU_INICIAL = [
   { id: 'malteada', nombre: 'Malteada', precio: 120, emoji: '🥤' },
 ];
 
-const BILLETES = [20, 50, 100, 200, 500, 1000];
+const BILLETES = { MXN: [20, 50, 100, 200, 500, 1000], USD: [1, 5, 10, 20, 50, 100] };
 
 function leer(clave, porDefecto) {
   try {
@@ -34,9 +35,11 @@ function guardar(clave, valor) {
 
 let menu = leer(CLAVE_MENU, MENU_INICIAL);
 let ventas = leer(CLAVE_VENTAS, []);
+let tasa = leer(CLAVE_TASA, null); // { valor: pesos por 1 dólar, actualizado: fecha ISO }
 let orden = {}; // id de producto -> cantidad
 let diaVisto = new Date();
-let recibido = null; // cantidad con la que paga el cliente, null = exacto
+let moneda = 'MXN'; // moneda en que paga el cliente
+let recibido = null; // cantidad con la que paga el cliente (en su moneda), null = exacto
 
 // ---------- Utilidades ----------
 
@@ -46,6 +49,10 @@ const formatoPesos = new Intl.NumberFormat('es-MX', {
   style: 'currency', currency: 'MXN', maximumFractionDigits: 2, minimumFractionDigits: 0,
 });
 const pesos = (n) => formatoPesos.format(n);
+const formatoNumero = new Intl.NumberFormat('es-MX', { maximumFractionDigits: 2, minimumFractionDigits: 0 });
+const dolares = (n) => `US$${formatoNumero.format(n)}`;
+const enMoneda = (n, m) => (m === 'USD' ? dolares(n) : pesos(n));
+const redondear = (n) => Math.round(n * 100) / 100;
 
 function claveDia(fecha) {
   const d = new Date(fecha);
@@ -149,29 +156,75 @@ $('btn-limpiar').addEventListener('click', () => {
 
 // ---------- Cobrar ----------
 
-function pintarCobro() {
+// Todo se calcula en pesos. Si el cliente paga en dólares, el total se convierte
+// con el tipo de cambio guardado (redondeado hacia arriba al centavo) y el cambio se da en pesos.
+function calcularCobro() {
   const total = totalOrden();
+  if (moneda === 'USD') {
+    const totalUsd = Math.ceil((total / tasa.valor) * 100) / 100;
+    const pagoUsd = recibido === null ? totalUsd : recibido;
+    const pagoPesos = recibido === null ? total : redondear(pagoUsd * tasa.valor);
+    return {
+      total, totalMoneda: totalUsd, pagoMoneda: pagoUsd, pagoPesos,
+      cambio: Math.max(0, redondear(pagoPesos - total)),
+      falta: redondear(totalUsd - pagoUsd),
+    };
+  }
   const pago = recibido === null ? total : recibido;
-  const falta = pago < total;
+  return {
+    total, totalMoneda: total, pagoMoneda: pago, pagoPesos: pago,
+    cambio: Math.max(0, redondear(pago - total)),
+    falta: redondear(total - pago),
+  };
+}
 
-  $('cobro-total').textContent = pesos(total);
-  $('cobro-cambio').textContent = pesos(Math.max(0, pago - total));
-  $('cobro-falta').hidden = !falta;
-  $('cobro-falta').textContent = falta ? `Faltan ${pesos(total - pago)}` : '';
-  $('btn-confirmar-cobro').disabled = falta;
+function pintarCobro() {
+  const c = calcularCobro();
+  const usd = moneda === 'USD';
 
+  document.querySelectorAll('#cobro-moneda button').forEach((b) =>
+    b.classList.toggle('seleccionado', b.dataset.moneda === moneda));
+
+  $('cobro-total').textContent = enMoneda(c.totalMoneda, moneda);
+  $('cobro-equivalente').hidden = !usd;
+  $('cobro-equivalente').textContent = usd ? `${pesos(c.total)} · 1 dólar = ${pesos(tasa.valor)}` : '';
+  $('cobro-recibido-etiqueta').textContent = usd ? 'Otra cantidad (dólares)' : 'Otra cantidad (pesos)';
+  $('cobro-recibido').step = usd ? '0.01' : '1';
+  $('cobro-cambio-etiqueta').textContent = usd ? 'Cambio en pesos' : 'Cambio';
+  $('cobro-cambio').textContent = pesos(c.cambio);
+  $('cobro-falta').hidden = c.falta <= 0;
+  $('cobro-falta').textContent = c.falta > 0 ? `Faltan ${enMoneda(c.falta, moneda)}` : '';
+  $('btn-confirmar-cobro').disabled = c.falta > 0;
+
+  const billetes = BILLETES[moneda];
+  const mayor = billetes[billetes.length - 1];
   $('cobro-billetes').innerHTML = [
     `<button type="button" data-monto="exacto" class="${recibido === null ? 'seleccionado' : ''}">Exacto</button>`,
-    ...BILLETES.filter((b) => b >= total || b === BILLETES[BILLETES.length - 1]).slice(0, 5).map((b) =>
-      `<button type="button" data-monto="${b}" class="${recibido === b ? 'seleccionado' : ''}">${pesos(b)}</button>`),
+    ...billetes.filter((b) => b >= c.totalMoneda || b === mayor).slice(0, 5).map((b) =>
+      `<button type="button" data-monto="${b}" class="${recibido === b ? 'seleccionado' : ''}">${enMoneda(b, moneda)}</button>`),
   ].join('');
 }
 
-$('btn-cobrar').addEventListener('click', () => {
+function cambiarMoneda(nueva) {
+  if (nueva === 'USD' && !(tasa && tasa.valor > 0)) {
+    $('cobro-sin-tasa').hidden = false;
+    return;
+  }
+  $('cobro-sin-tasa').hidden = true;
+  moneda = nueva;
   recibido = null;
   $('cobro-recibido').value = '';
   pintarCobro();
+}
+
+$('btn-cobrar').addEventListener('click', () => {
+  cambiarMoneda('MXN');
   $('dlg-cobrar').showModal();
+});
+
+$('cobro-moneda').addEventListener('click', (e) => {
+  const boton = e.target.closest('button[data-moneda]');
+  if (boton) cambiarMoneda(boton.dataset.moneda);
 });
 
 $('cobro-billetes').addEventListener('click', (e) => {
@@ -191,9 +244,8 @@ $('cobro-recibido').addEventListener('input', (e) => {
 $('btn-cancelar-cobro').addEventListener('click', () => $('dlg-cobrar').close());
 
 $('btn-confirmar-cobro').addEventListener('click', () => {
-  const total = totalOrden();
-  const pago = recibido === null ? total : recibido;
-  if (total === 0 || pago < total) return;
+  const c = calcularCobro();
+  if (c.total === 0 || c.falta > 0) return;
 
   const venta = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -202,10 +254,15 @@ $('btn-confirmar-cobro').addEventListener('click', () => {
     productos: menu.filter((p) => orden[p.id] > 0).map((p) => ({
       id: p.id, nombre: p.nombre, precio: p.precio, cantidad: orden[p.id],
     })),
-    total,
-    recibido: pago,
-    cambio: pago - total,
+    total: c.total,
+    moneda,
+    recibido: c.pagoPesos, // siempre en pesos
+    cambio: c.cambio, // siempre en pesos
   };
+  if (moneda === 'USD') {
+    venta.tipoCambio = tasa.valor;
+    venta.recibidoUsd = c.pagoMoneda;
+  }
 
   ventas.push(venta);
   if (!guardar(CLAVE_VENTAS, ventas)) {
@@ -254,6 +311,12 @@ function pintarVentas() {
   $('res-ordenes').textContent = r.ventas.length;
   $('res-total').textContent = pesos(r.total);
 
+  // Para cuadrar la caja: cuántos dólares en efectivo entraron este día.
+  const enDolares = r.ventas.filter((v) => v.moneda === 'USD');
+  const usdRecibidos = redondear(enDolares.reduce((s, v) => s + v.recibidoUsd, 0));
+  $('res-dolares').hidden = enDolares.length === 0;
+  $('res-dolares').textContent = `💵 Pagos en dólares: ${enDolares.length} ${enDolares.length === 1 ? 'venta' : 'ventas'} · ${dolares(usdRecibidos)} recibidos`;
+
   // Mostrar siempre los productos del menú (aunque estén en 0), y además cualquiera vendido que ya no esté en el menú.
   const filas = menu.map((p) => ({ emoji: p.emoji, ...(r.porProducto.get(p.id) || { nombre: p.nombre, unidades: 0, monto: 0 }) }));
   for (const [id, datos] of r.porProducto) {
@@ -270,7 +333,8 @@ function pintarVentas() {
   $('res-ventas').innerHTML = r.ventas.slice().reverse().map((v) => `
     <li>
       <span class="hora">${new Date(v.fecha).toLocaleTimeString('es-MX', { hour: 'numeric', minute: '2-digit' })}</span>
-      <span class="detalle">${v.productos.map((p) => `${p.cantidad} × ${escapar(p.nombre)}`).join('<br>')}</span>
+      <span class="detalle">${v.productos.map((p) => `${p.cantidad} × ${escapar(p.nombre)}`).join('<br>')}${
+        v.moneda === 'USD' ? `<span class="usd">Pagó ${dolares(v.recibidoUsd)}</span>` : ''}</span>
       <span class="monto">${pesos(v.total)}</span>
       <button class="borrar" type="button" data-id="${escapar(v.id)}" aria-label="Borrar venta">🗑️</button>
     </li>`).join('');
@@ -301,7 +365,30 @@ $('res-ventas').addEventListener('click', (e) => {
 
 // ---------- Ajustes ----------
 
+function pintarTasa() {
+  $('tasa-valor').value = tasa ? tasa.valor : '';
+  $('tasa-actualizada').textContent = tasa
+    ? `Actualizado: ${new Date(tasa.actualizado).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })}`
+    : 'Todavía no hay tipo de cambio. Sin él no se puede cobrar en dólares.';
+}
+
+$('form-tasa').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const valor = redondear(parseFloat($('tasa-valor').value));
+  if (!(valor > 0)) {
+    mostrarAviso('Escribe cuántos pesos vale 1 dólar', true);
+    return;
+  }
+  const nueva = { valor, actualizado: new Date().toISOString() };
+  if (guardar(CLAVE_TASA, nueva)) {
+    tasa = nueva;
+    pintarTasa();
+    mostrarAviso(`Tipo de cambio guardado ✓  1 dólar = ${pesos(valor)}`);
+  }
+});
+
 function pintarAjustes() {
+  pintarTasa();
   $('form-menu').innerHTML = menu.map((p, i) => `
     <div class="fila">
       <label class="campo">
@@ -343,12 +430,15 @@ $('btn-exportar').addEventListener('click', () => {
     return;
   }
   // Una fila por producto vendido: fácil de sumar en Excel o Google Sheets.
-  const filas = [['Fecha', 'Hora', 'Venta', 'Producto', 'Cantidad', 'Precio', 'Subtotal', 'Total venta', 'Recibido', 'Cambio']];
+  const filas = [['Fecha', 'Hora', 'Venta', 'Producto', 'Cantidad', 'Precio', 'Subtotal', 'Total venta',
+    'Moneda de pago', 'Tipo de cambio', 'Recibido (USD)', 'Recibido (MXN)', 'Cambio (MXN)']];
   for (const v of ventas) {
     const d = new Date(v.fecha);
     const hora = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     for (const p of v.productos) {
-      filas.push([claveDia(d), hora, v.id, p.nombre, p.cantidad, p.precio, p.cantidad * p.precio, v.total, v.recibido, v.cambio]);
+      const usd = v.moneda === 'USD';
+      filas.push([claveDia(d), hora, v.id, p.nombre, p.cantidad, p.precio, p.cantidad * p.precio, v.total,
+        usd ? 'USD' : 'MXN', usd ? v.tipoCambio : '', usd ? v.recibidoUsd : '', v.recibido, v.cambio]);
     }
   }
   const csv = '﻿' + filas.map((f) => f.map(campoCsv).join(',')).join('\n');

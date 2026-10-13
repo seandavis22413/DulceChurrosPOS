@@ -220,7 +220,7 @@ main { padding: 16px; max-width: 720px; margin: 0 auto; }
 .hoja {
   border: none;
   border-radius: 22px;
-  padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+  padding: 16px 16px 0;
   width: min(100% - 24px, 520px);
   max-height: calc(100% - 24px);
   background: var(--fondo);
@@ -234,13 +234,14 @@ main { padding: 16px; max-width: 720px; margin: 0 auto; }
   align-items: baseline;
   background: var(--blanco);
   border-radius: 14px;
-  padding: 14px;
+  padding: 10px 14px;
   box-shadow: var(--sombra);
 }
-.cobro-total strong { font-size: 2rem; color: var(--cafe); }
+.cobro-total strong { font-size: 1.8rem; color: var(--cafe); }
 .cobro-cambio { margin-top: 12px; }
-.cobro-cambio strong { font-size: 2rem; color: var(--verde); }
-.etiqueta { font-weight: 700; margin: 16px 0 8px; }
+.cobro-cambio strong { font-size: 1.8rem; color: var(--verde); }
+.etiqueta { font-weight: 700; margin: 12px 0 6px; }
+.hoja .etiqueta:first-of-type { margin-top: 4px; }
 .billetes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
 .billetes button {
   min-height: 56px;
@@ -254,7 +255,16 @@ main { padding: 16px; max-width: 720px; margin: 0 auto; }
 }
 .billetes button.seleccionado { background: var(--dorado); border-color: var(--cafe); color: var(--texto); }
 .aviso { color: var(--rojo); font-weight: 700; margin: 10px 0 0; }
-.acciones { display: grid; grid-template-columns: 1fr 1.6fr; gap: 10px; margin-top: 16px; }
+/* Cambio y botones siempre visibles aunque la ventana sea más alta que la pantalla. */
+.pie-cobro {
+  position: sticky;
+  bottom: 0;
+  background: var(--fondo);
+  padding: 10px 0 calc(16px + env(safe-area-inset-bottom));
+  margin-top: 4px;
+}
+.pie-cobro .cobro-cambio { margin-top: 0; }
+.acciones { display: grid; grid-template-columns: 1fr 1.6fr; gap: 10px; margin-top: 10px; }
 
 /* Tabs */
 .tabs {
@@ -306,3 +316,40 @@ main { padding: 16px; max-width: 720px; margin: 0 auto; }
   max-width: calc(100% - 32px);
 }
 .toast.visible { opacity: 1; transform: translate(-50%, 0); }
+
+/* Moneda de pago */
+.moneda { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.moneda button {
+  min-height: 56px;
+  border-radius: 12px;
+  border: 2px solid var(--borde);
+  background: var(--blanco);
+  font: inherit;
+  font-weight: 800;
+  color: var(--cafe);
+  touch-action: manipulation;
+}
+.moneda button.seleccionado { background: var(--cafe); border-color: var(--cafe); color: var(--crema); }
+.cobro-total .cifra { display: flex; flex-direction: column; align-items: flex-end; }
+.cobro-total small { color: var(--gris); font-size: 0.9rem; text-align: right; }
+.nota-dolares {
+  background: var(--blanco);
+  border-left: 6px solid var(--verde);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 12px 0 0;
+  box-shadow: var(--sombra);
+  font-weight: 700;
+}
+.lista-ventas .usd { display: block; color: var(--verde); font-weight: 800; }
+
+/* Tipo de cambio */
+.form-tasa {
+  background: var(--blanco);
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: var(--sombra);
+}
+.tasa-fila { display: flex; align-items: center; gap: 10px; }
+.tasa-fila input { flex: 1; min-width: 0; text-align: center; font-weight: 800; }
+.form-tasa .ayuda { margin: 8px 0 10px; }
