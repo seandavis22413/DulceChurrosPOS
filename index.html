@@ -3,25 +3,104 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#7a3e12">
+  <meta name="theme-color" content="#e7e0d5">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Dulce Churros">
   <title>Dulce Churros</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/favicon-64.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="preload" href="fonts/HerrVonMuellerhoff-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Jost.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <svg xmlns="http://www.w3.org/2000/svg" class="sprite" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+    <defs>
+      <!-- Un churro: barra con estrías a lo largo y azúcar con canela. -->
+      <g id="churro-base">
+        <rect x="-27" y="-4.6" width="54" height="9.2" rx="3.2" fill="#d89a52" stroke="#2f3539" stroke-width="1.5"/>
+        <path d="M-24 -1.4H24M-24 1.8H24" stroke="#a5652b" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+        <path d="M-23 -3H20" stroke="#f1c486" stroke-width="1.1" stroke-linecap="round"/>
+        <g fill="#fff8ec">
+          <circle cx="-15" cy=".2" r=".8"/><circle cx="-6" cy="3" r=".7"/><circle cx="3" cy="-.2" r=".8"/>
+          <circle cx="12" cy="3" r=".7"/><circle cx="20" cy=".2" r=".7"/><circle cx="-21" cy="3" r=".6"/>
+        </g>
+        <g fill="#7a4520"><circle cx="-10" cy="3.2" r=".5"/><circle cx="8" cy=".4" r=".5"/><circle cx="16" cy="3.4" r=".5"/></g>
+      </g>
+    </defs>
+    <symbol id="icono-churros" viewBox="0 0 64 64">
+      <use href="#churro-base" transform="translate(23.5 28) rotate(-102) scale(.86)"/>
+      <use href="#churro-base" transform="translate(32 26) rotate(-89) scale(.86)"/>
+      <use href="#churro-base" transform="translate(40.5 28) rotate(-76) scale(.86)"/>
+      <!-- Bolsita de papel con el corazón del logo -->
+      <path d="M14 36h36l-4 23.4c-.2 1.2-1.2 2-2.4 2H20.4c-1.2 0-2.2-.8-2.4-2z" fill="#fbf7f0" stroke="#2f3539" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M14.8 40.4h34.4" stroke="#2f3539" stroke-width="1.1"/>
+      <path d="M32 55.4c-3.6-2.8-5.8-4.8-5.8-7.2a2.7 2.7 0 0 1 5.8-1.3 2.7 2.7 0 0 1 5.8 1.3c0 2.4-2.2 4.4-5.8 7.2z" fill="none" stroke="#2f3539" stroke-width="1.3" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="icono-churros-helado" viewBox="0 0 64 64">
+      <use href="#churro-base" transform="translate(32 47) scale(1.1 1.3)"/>
+      <!-- Bola de helado encima del churro -->
+      <path d="M17 41c-1.4-11 6-19.4 15-19.4S48.4 30 47 41c-1.6.3-2.4-2.6-4-2.6s-2.2 3.6-4.2 3.6-2-3.6-3.6-3.6-1.8 3.8-3.6 3.8-2-3.8-3.6-3.8-2.2 3.6-4 3.6-2.6-3.6-4.2-3.6-2.2 2.8-2.8 2.6z"
+            fill="#fbf3e2" stroke="#2f3539" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M22.6 28.4c2.2-2.6 5.4-4 8.6-4" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+      <path d="M20.6 33.6c3.4 1.8 6.4-1.6 9.6 0s6.4-1.6 11 .4" stroke="#6b3f22" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+      <circle cx="35" cy="19.4" r="3" fill="#c0463a" stroke="#2f3539" stroke-width="1.2"/>
+      <path d="M35.4 16.6c.6-2.4 2.2-4 4.4-4.8" stroke="#2f3539" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+    </symbol>
+    <symbol id="icono-malteada" viewBox="0 0 64 64">
+      <path d="M38 4l-4 20" stroke="#2f3539" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M38 4l-4 20" stroke="#f4ede2" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2.4 2.4"/>
+      <path d="M19 22c0-4.5 3.4-7.6 7-7.6 1.2-3.2 4-5 7-5 3.6 0 6.4 2.4 7 5.6 3.4.4 5.8 3.4 5 7z" fill="#fffaf1" stroke="#2f3539" stroke-width="1.6" stroke-linejoin="round"/>
+      <circle cx="33" cy="8.4" r="2.8" fill="#c0463a" stroke="#2f3539" stroke-width="1.2"/>
+      <path d="M17 22h30l-4.2 36c-.2 1.6-1.4 2.6-3 2.6H24.2c-1.6 0-2.8-1-3-2.6z" fill="#e8c9a0" stroke="#2f3539" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M18.6 30h26.8" stroke="#2f3539" stroke-width="1.2" opacity=".35"/>
+      <path d="M22.6 34l2.6 22" stroke="#fff6e8" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+    </symbol>
+
+    <!-- Iconos de las pestañas (línea fina, como el logo) -->
+    <symbol id="tab-vender" viewBox="0 0 24 24">
+      <path d="M5 8h14l-1.2 11.2a1.6 1.6 0 0 1-1.6 1.4H7.8a1.6 1.6 0 0 1-1.6-1.4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M9 10V7a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="tab-ventas" viewBox="0 0 24 24">
+      <path d="M4 20h16M7 17v-5M12 17V6M17 17v-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="tab-ajustes" viewBox="0 0 24 24">
+      <path d="M4 7h10M18 7h2M4 17h2M10 17h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="16" cy="7" r="2.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <circle cx="8" cy="17" r="2.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    </symbol>
+    <symbol id="corazon" viewBox="0 0 24 20">
+      <path d="M12 18C6 13.4 2.4 10 2.4 6.2A4.4 4.4 0 0 1 12 4a4.4 4.4 0 0 1 9.6 2.2C21.6 10 18 13.4 12 18z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="icono-borrar" viewBox="0 0 24 24">
+      <path d="M4 7h16M9.5 7V4.8h5V7M6.5 7l.9 12.2c.1 1 .9 1.8 1.9 1.8h5.4c1 0 1.8-.8 1.9-1.8L17.5 7M10 11v6M14 11v6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <!-- Logo circular: el nombre cruza el círculo y "PUNTA MITA" sigue la curva de abajo. -->
+    <symbol id="logo-circulo" viewBox="0 0 340 300">
+      <path d="M73.7 125.5A110 110 0 0 1 266.3 125.5M269.8 182A110 110 0 0 1 70.2 182" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+      <path id="curva-lugar" d="M92 150A78 78 0 0 0 248 150" fill="none"/>
+      <text font-family="Herr Von Muellerhoff, cursive" font-size="78" fill="currentColor" x="158" y="168" text-anchor="end">Dulce</text>
+      <path d="M170 160c-5-3.8-8-6.6-8-9.8a3.7 3.7 0 0 1 8-1.8 3.7 3.7 0 0 1 8 1.8c0 3.2-3 6-8 9.8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <text font-family="Herr Von Muellerhoff, cursive" font-size="78" fill="currentColor" x="180" y="168">Churros</text>
+      <text font-family="Jost, sans-serif" font-size="15" letter-spacing="7" fill="currentColor"><textPath href="#curva-lugar" startOffset="50%" text-anchor="middle">PUNTA MITA</textPath></text>
+    </symbol>
+  </svg>
+
   <header class="topbar">
-    <h1>Dulce Churros</h1>
+    <h1 class="marca" aria-label="Dulce Churros, Punta Mita">
+      <span class="marca-nombre">Dulce<svg class="icono corazon"><use href="#corazon"/></svg>Churros</span>
+      <span class="marca-lugar">PUNTA MITA</span>
+    </h1>
   </header>
 
   <main>
     <!-- VENDER -->
     <section id="vista-vender" class="vista activa">
+      <h2>Menú</h2>
       <div id="botones-menu" class="botones-menu"></div>
 
       <div class="orden">
@@ -96,18 +175,20 @@
 
       <h2>Zona de peligro</h2>
       <button id="btn-borrar-todo" class="btn btn-peligro btn-ancho" type="button">Borrar todas las ventas</button>
+
+      <div class="pie-marca" aria-hidden="true"><svg><use href="#logo-circulo"/></svg></div>
     </section>
   </main>
 
   <nav class="tabs">
-    <button class="tab activa" data-vista="vender" type="button"><span>🛒</span>Vender</button>
-    <button class="tab" data-vista="ventas" type="button"><span>📊</span>Ventas</button>
-    <button class="tab" data-vista="ajustes" type="button"><span>⚙️</span>Ajustes</button>
+    <button class="tab activa" data-vista="vender" type="button"><svg class="icono"><use href="#tab-vender"/></svg>Vender</button>
+    <button class="tab" data-vista="ventas" type="button"><svg class="icono"><use href="#tab-ventas"/></svg>Ventas</button>
+    <button class="tab" data-vista="ajustes" type="button"><svg class="icono"><use href="#tab-ajustes"/></svg>Ajustes</button>
   </nav>
 
   <!-- COBRAR -->
   <dialog id="dlg-cobrar" class="hoja">
-    <h2>Cobrar</h2>
+    <h2 class="titulo-hoja">Cobrar</h2>
     <p class="etiqueta">¿Cómo paga?</p>
     <div id="cobro-moneda" class="moneda" role="group" aria-label="Moneda de pago">
       <button type="button" data-moneda="MXN">🇲🇽 Pesos</button>

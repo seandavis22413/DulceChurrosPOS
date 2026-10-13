@@ -7,10 +7,17 @@ const CLAVE_VENTAS = 'dulcechurros.ventas';
 const CLAVE_TASA = 'dulcechurros.tipoCambio';
 
 const MENU_INICIAL = [
-  { id: 'churros', nombre: 'Orden de Churros', precio: 100, emoji: '🥖' },
-  { id: 'churros-helado', nombre: 'Churros con Helado', precio: 120, emoji: '🍦' },
-  { id: 'malteada', nombre: 'Malteada', precio: 120, emoji: '🥤' },
+  { id: 'churros', nombre: 'Orden de Churros', precio: 100 },
+  { id: 'churros-helado', nombre: 'Churros con Helado', precio: 120 },
+  { id: 'malteada', nombre: 'Malteada', precio: 120 },
 ];
+
+// Dibujos de cada producto (definidos en index.html). Se buscan por id, así funcionan
+// aunque el menú guardado en el teléfono sea de una versión anterior.
+const ICONOS = { churros: 'icono-churros', 'churros-helado': 'icono-churros-helado', malteada: 'icono-malteada' };
+const icono = (id, extra = '') => (ICONOS[id]
+  ? `<svg class="icono ${extra}" aria-hidden="true"><use href="#${ICONOS[id]}"/></svg>`
+  : `<span class="sin-icono" aria-hidden="true">•</span>`);
 
 const BILLETES = { MXN: [20, 50, 100, 200, 500, 1000], USD: [1, 5, 10, 20, 50, 100] };
 
@@ -71,7 +78,7 @@ let temporizadorAviso;
 function mostrarAviso(texto, error = false) {
   const el = $('aviso');
   el.textContent = texto;
-  el.style.background = error ? 'var(--rojo)' : 'var(--verde)';
+  el.classList.toggle('error', error);
   el.classList.add('visible');
   clearTimeout(temporizadorAviso);
   temporizadorAviso = setTimeout(() => el.classList.remove('visible'), 2200);
@@ -104,7 +111,7 @@ function totalOrden() {
 function pintarMenu() {
   $('botones-menu').innerHTML = menu.map((p) => `
     <button class="producto" type="button" data-id="${escapar(p.id)}">
-      <span class="emoji">${escapar(p.emoji)}</span>
+      ${icono(p.id)}
       <span class="nombre">${escapar(p.nombre)}</span>
       <span class="precio">${pesos(p.precio)}</span>
     </button>`).join('');
@@ -114,8 +121,9 @@ function pintarOrden() {
   const lineas = menu.filter((p) => orden[p.id] > 0);
   $('orden-lista').innerHTML = lineas.map((p) => `
     <li>
+      ${icono(p.id)}
       <div class="info">
-        <strong>${escapar(p.emoji)} ${escapar(p.nombre)}</strong>
+        <strong>${escapar(p.nombre)}</strong>
         <span>${pesos(p.precio * orden[p.id])}</span>
       </div>
       <div class="cantidad">
@@ -315,16 +323,16 @@ function pintarVentas() {
   const enDolares = r.ventas.filter((v) => v.moneda === 'USD');
   const usdRecibidos = redondear(enDolares.reduce((s, v) => s + v.recibidoUsd, 0));
   $('res-dolares').hidden = enDolares.length === 0;
-  $('res-dolares').textContent = `💵 Pagos en dólares: ${enDolares.length} ${enDolares.length === 1 ? 'venta' : 'ventas'} · ${dolares(usdRecibidos)} recibidos`;
+  $('res-dolares').textContent = `Pagos en dólares: ${enDolares.length} ${enDolares.length === 1 ? 'venta' : 'ventas'} · ${dolares(usdRecibidos)} recibidos`;
 
   // Mostrar siempre los productos del menú (aunque estén en 0), y además cualquiera vendido que ya no esté en el menú.
-  const filas = menu.map((p) => ({ emoji: p.emoji, ...(r.porProducto.get(p.id) || { nombre: p.nombre, unidades: 0, monto: 0 }) }));
+  const filas = menu.map((p) => ({ id: p.id, ...(r.porProducto.get(p.id) || { nombre: p.nombre, unidades: 0, monto: 0 }) }));
   for (const [id, datos] of r.porProducto) {
-    if (!menu.some((p) => p.id === id)) filas.push({ emoji: '•', ...datos });
+    if (!menu.some((p) => p.id === id)) filas.push({ id, ...datos });
   }
   $('res-productos').innerHTML = filas.map((f) => `
     <li>
-      <span class="emoji">${escapar(f.emoji)}</span>
+      ${icono(f.id)}
       <span class="nombre">${escapar(f.nombre)}</span>
       <span class="unidades">${f.unidades}</span>
       <span class="monto">${pesos(f.monto)}</span>
@@ -336,7 +344,7 @@ function pintarVentas() {
       <span class="detalle">${v.productos.map((p) => `${p.cantidad} × ${escapar(p.nombre)}`).join('<br>')}${
         v.moneda === 'USD' ? `<span class="usd">Pagó ${dolares(v.recibidoUsd)}</span>` : ''}</span>
       <span class="monto">${pesos(v.total)}</span>
-      <button class="borrar" type="button" data-id="${escapar(v.id)}" aria-label="Borrar venta">🗑️</button>
+      <button class="borrar" type="button" data-id="${escapar(v.id)}" aria-label="Borrar venta"><svg class="icono"><use href="#icono-borrar"/></svg></button>
     </li>`).join('');
   $('res-vacio').hidden = r.ventas.length > 0;
 }
@@ -392,7 +400,7 @@ function pintarAjustes() {
   $('form-menu').innerHTML = menu.map((p, i) => `
     <div class="fila">
       <label class="campo">
-        <span>${escapar(p.emoji)} Nombre</span>
+        <span>${icono(p.id)} Nombre</span>
         <input name="nombre-${i}" type="text" value="${escapar(p.nombre)}" required>
       </label>
       <label class="campo">

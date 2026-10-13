@@ -1,13 +1,16 @@
 // Guarda la app en el teléfono para que funcione sin internet.
 // Sube la versión cada vez que cambien los archivos para que el teléfono descargue lo nuevo.
-const VERSION = 'dulcechurros-v2';
+const VERSION = 'dulcechurros-v3';
 const ARCHIVOS = [
   './',
   'index.html',
   'styles.css',
   'app.js',
   'manifest.webmanifest',
-  'icons/icon.svg',
+  'fonts/HerrVonMuellerhoff-Regular.woff2',
+  'fonts/Jost.woff2',
+  'icons/favicon-64.png',
+  'icons/icon-maskable-512.png',
   'icons/icon-180.png',
   'icons/icon-192.png',
   'icons/icon-512.png',

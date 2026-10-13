@@ -17,6 +17,14 @@ Punto de venta sencillo para el teléfono. Registra cada venta de churros y malt
 > Las ventas se guardan **solo en el teléfono** donde se usa la app. Descarga el respaldo CSV seguido.
 > Si borras los datos del navegador o desinstalas la app, se pierden las ventas.
 
+## Diseño
+
+Colores y tipografías tomados del logo (tinta carbón sobre arena):
+- **Herr Von Muellerhoff** para el nombre en letra manuscrita y **Jost** para el resto del texto.
+  Ambas son de Google Fonts con licencia libre (SIL Open Font License) y están en `fonts/` para que la app funcione sin internet.
+- Los dibujos de los productos y el logo circular están en `index.html` como SVG.
+  Si tienes el archivo original del logo (PNG o SVG), se puede poner en lugar de esta versión redibujada.
+
 ## Cómo publicarla (gratis) y abrirla en el teléfono
 
 La app son archivos estáticos (`index.html`, `app.js`, `styles.css`…), sin instalación ni compilación.
