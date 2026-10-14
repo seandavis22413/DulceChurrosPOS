@@ -76,7 +76,11 @@
     <symbol id="corazon" viewBox="0 0 24 20">
       <path d="M12 18C6 13.4 2.4 10 2.4 6.2A4.4 4.4 0 0 1 12 4a4.4 4.4 0 0 1 9.6 2.2C21.6 10 18 13.4 12 18z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
     </symbol>
-    <symbol id="icono-borrar" viewBox="0 0 24 24">
+    <symbol id="icono-extra" viewBox="0 0 24 24">
+    <path d="M3.5 12.6V4.8c0-.7.6-1.3 1.3-1.3h7.8l8 8a1.4 1.4 0 0 1 0 2l-6.8 6.8a1.4 1.4 0 0 1-2 0z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    <circle cx="8.2" cy="8.2" r="1.6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  </symbol>
+  <symbol id="icono-borrar" viewBox="0 0 24 24">
       <path d="M4 7h16M9.5 7V4.8h5V7M6.5 7l.9 12.2c.1 1 .9 1.8 1.9 1.8h5.4c1 0 1.8-.8 1.9-1.8L17.5 7M10 11v6M14 11v6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </symbol>
     <!-- Logo circular: el nombre cruza el círculo y "PUNTA MITA" sigue la curva de abajo. -->
@@ -100,18 +104,26 @@
   <main>
     <!-- VENDER -->
     <section id="vista-vender" class="vista activa">
+      <div id="cuentas" class="cuentas" aria-label="Cuentas abiertas"></div>
+      <p id="cuentas-max" class="ayuda cuentas-max" hidden>Máximo 3 cuentas. Cobra o borra una para abrir otra.</p>
+
       <h2>Menú</h2>
       <div id="botones-menu" class="botones-menu"></div>
 
+      <div id="otros-seccion" hidden>
+        <h2>Otros</h2>
+        <div id="botones-otros" class="botones-otros"></div>
+      </div>
+
       <div class="orden">
-        <h2>Orden actual</h2>
+        <h2 id="orden-titulo">Orden</h2>
         <ul id="orden-lista" class="orden-lista"></ul>
         <p id="orden-vacia" class="vacio">Toca un producto para agregarlo.</p>
       </div>
 
       <div class="barra-cobro">
         <div class="total-orden">
-          <span>Total</span>
+          <span id="total-etiqueta">Total</span>
           <strong id="orden-total">$0</strong>
         </div>
         <button id="btn-limpiar" class="btn btn-secundario" type="button">Borrar</button>
@@ -169,6 +181,10 @@
       <h2>Menú y precios (MXN)</h2>
       <form id="form-menu" class="form-menu"></form>
 
+      <h2>Otros artículos</h2>
+      <p class="ayuda">Bolsas y otras cosas que también se cobran. Aparecen en Vender, debajo del menú.</p>
+      <form id="form-otros" class="form-otros"></form>
+
       <h2>Respaldo</h2>
       <p class="ayuda">Las ventas se guardan solo en este teléfono. Descarga un respaldo seguido.</p>
       <button id="btn-exportar" class="btn btn-secundario btn-ancho" type="button">Descargar ventas (Excel / CSV)</button>
@@ -188,7 +204,10 @@
 
   <!-- COBRAR -->
   <dialog id="dlg-cobrar" class="hoja">
-    <h2 class="titulo-hoja">Cobrar</h2>
+    <div class="encabezado-hoja">
+      <h2 class="titulo-hoja">Cobrar</h2>
+      <span id="cobro-cuenta" class="cobro-cuenta"></span>
+    </div>
     <p class="etiqueta">¿Cómo paga?</p>
     <div id="cobro-moneda" class="moneda" role="group" aria-label="Moneda de pago">
       <button type="button" data-moneda="MXN">🇲🇽 Pesos</button>

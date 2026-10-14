@@ -5,6 +5,10 @@
 const CLAVE_MENU = 'dulcechurros.menu';
 const CLAVE_VENTAS = 'dulcechurros.ventas';
 const CLAVE_TASA = 'dulcechurros.tipoCambio';
+const CLAVE_EXTRAS = 'dulcechurros.otros';
+const CLAVE_CUENTAS = 'dulcechurros.cuentas';
+
+const MAX_CUENTAS = 3;
 
 const MENU_INICIAL = [
   { id: 'churros', nombre: 'Orden de Churros', precio: 100 },
@@ -15,9 +19,13 @@ const MENU_INICIAL = [
 // Dibujos de cada producto (definidos en index.html). Se buscan por id, así funcionan
 // aunque el menú guardado en el teléfono sea de una versión anterior.
 const ICONOS = { churros: 'icono-churros', 'churros-helado': 'icono-churros-helado', malteada: 'icono-malteada' };
-const icono = (id, extra = '') => (ICONOS[id]
-  ? `<svg class="icono ${extra}" aria-hidden="true"><use href="#${ICONOS[id]}"/></svg>`
-  : `<span class="sin-icono" aria-hidden="true">•</span>`);
+// Los artículos agregados en Ajustes (bolsas, etc.) usan una etiqueta.
+const icono = (id) => {
+  const simbolo = ICONOS[id] || (String(id).startsWith('extra-') ? 'icono-extra' : null);
+  return simbolo
+    ? `<svg class="icono" aria-hidden="true"><use href="#${simbolo}"/></svg>`
+    : '<span class="sin-icono" aria-hidden="true">•</span>';
+};
 
 const BILLETES = { MXN: [20, 50, 100, 200, 500, 1000], USD: [1, 5, 10, 20, 50, 100] };
 
@@ -43,7 +51,16 @@ function guardar(clave, valor) {
 let menu = leer(CLAVE_MENU, MENU_INICIAL);
 let ventas = leer(CLAVE_VENTAS, []);
 let tasa = leer(CLAVE_TASA, null); // { valor: pesos por 1 dólar, actualizado: fecha ISO }
-let orden = {}; // id de producto -> cantidad
+let extras = leer(CLAVE_EXTRAS, []); // otros artículos: [{ id: 'extra-…', nombre, precio }]
+
+// Cuentas abiertas (máximo 3). Se guardan en el teléfono para no perderlas si se cierra la app.
+// Cada cuenta: { numero: 1..3, orden: { id de producto -> cantidad } }
+let { cuentas, activa } = leer(CLAVE_CUENTAS, {});
+cuentas = Array.isArray(cuentas)
+  ? cuentas.filter((c) => c && c.orden && [1, 2, 3].includes(c.numero)).slice(0, MAX_CUENTAS)
+  : [];
+if (cuentas.length === 0) cuentas = [{ numero: 1, orden: {} }];
+if (!cuentas.some((c) => c.numero === activa)) activa = cuentas[0].numero;
 let diaVisto = new Date();
 let moneda = 'MXN'; // moneda en que paga el cliente
 let recibido = null; // cantidad con la que paga el cliente (en su moneda), null = exacto
@@ -102,11 +119,69 @@ document.querySelectorAll('.tab').forEach((tab) => {
   tab.addEventListener('click', () => irA(tab.dataset.vista));
 });
 
-// ---------- Vender ----------
+// ---------- Cuentas ----------
 
-function totalOrden() {
-  return menu.reduce((suma, p) => suma + (orden[p.id] || 0) * p.precio, 0);
+const productos = () => [...menu, ...extras];
+const cuentaActiva = () => cuentas.find((c) => c.numero === activa);
+const totalDe = (cuenta) => productos().reduce((suma, p) => suma + (cuenta.orden[p.id] || 0) * p.precio, 0);
+const totalOrden = () => totalDe(cuentaActiva());
+const tieneProductos = (cuenta) => productos().some((p) => cuenta.orden[p.id] > 0);
+
+function guardarCuentas() {
+  guardar(CLAVE_CUENTAS, { cuentas, activa });
 }
+
+function abrirCuenta() {
+  if (cuentas.length >= MAX_CUENTAS) {
+    mostrarAviso(`Máximo ${MAX_CUENTAS} cuentas abiertas`, true);
+    return;
+  }
+  const numero = [1, 2, 3].find((n) => !cuentas.some((c) => c.numero === n));
+  cuentas.push({ numero, orden: {} });
+  cuentas.sort((x, y) => x.numero - y.numero);
+  activa = numero;
+  guardarCuentas();
+  pintarOrden();
+  mostrarAviso(`Cuenta ${numero} abierta`);
+}
+
+// Cierra una cuenta (cobrada o borrada). Siempre queda al menos una abierta.
+function cerrarCuenta(numero) {
+  cuentas = cuentas.filter((c) => c.numero !== numero);
+  if (cuentas.length === 0) cuentas = [{ numero: 1, orden: {} }];
+  if (!cuentas.some((c) => c.numero === activa)) activa = cuentas[0].numero;
+  guardarCuentas();
+}
+
+function pintarCuentas() {
+  $('cuentas').innerHTML = cuentas.map((c) => {
+    const total = totalDe(c);
+    return `
+    <button class="cuenta ${c.numero === activa ? 'activa' : ''}" type="button" data-numero="${c.numero}"
+            aria-pressed="${c.numero === activa}">
+      <span class="nombre-cuenta">Cuenta ${c.numero}</span>
+      <span class="total-cuenta">${total > 0 ? pesos(total) : 'vacía'}</span>
+    </button>`;
+  }).join('') + (cuentas.length < MAX_CUENTAS
+    ? '<button class="cuenta cuenta-nueva" type="button" data-accion="nueva" aria-label="Abrir otra cuenta">+</button>'
+    : '');
+  $('cuentas-max').hidden = cuentas.length < MAX_CUENTAS;
+}
+
+$('cuentas').addEventListener('click', (e) => {
+  const boton = e.target.closest('button.cuenta');
+  if (!boton) return;
+  if (boton.dataset.accion === 'nueva') {
+    abrirCuenta();
+    return;
+  }
+  activa = Number(boton.dataset.numero);
+  guardarCuentas();
+  vibrar();
+  pintarOrden();
+});
+
+// ---------- Vender ----------
 
 function pintarMenu() {
   $('botones-menu').innerHTML = menu.map((p) => `
@@ -115,10 +190,20 @@ function pintarMenu() {
       <span class="nombre">${escapar(p.nombre)}</span>
       <span class="precio">${pesos(p.precio)}</span>
     </button>`).join('');
+  $('botones-otros').innerHTML = extras.map((p) => `
+    <button class="otro" type="button" data-id="${escapar(p.id)}">
+      <span class="nombre">${escapar(p.nombre)}</span>
+      <span class="precio">${pesos(p.precio)}</span>
+    </button>`).join('');
+  $('otros-seccion').hidden = extras.length === 0;
 }
 
 function pintarOrden() {
-  const lineas = menu.filter((p) => orden[p.id] > 0);
+  pintarCuentas();
+  const { numero, orden } = cuentaActiva();
+  const lineas = productos().filter((p) => orden[p.id] > 0);
+  $('orden-titulo').textContent = `Orden · Cuenta ${numero}`;
+  $('total-etiqueta').textContent = `Total · Cuenta ${numero}`;
   $('orden-lista').innerHTML = lineas.map((p) => `
     <li>
       ${icono(p.id)}
@@ -135,31 +220,42 @@ function pintarOrden() {
   $('orden-vacia').hidden = lineas.length > 0;
   $('orden-total').textContent = pesos(totalOrden());
   $('btn-cobrar').disabled = lineas.length === 0;
+  $('btn-limpiar').disabled = lineas.length === 0 && cuentas.length === 1;
 }
 
-$('botones-menu').addEventListener('click', (e) => {
-  const boton = e.target.closest('.producto');
+function agregar(e) {
+  const boton = e.target.closest('button[data-id]');
   if (!boton) return;
+  const { orden } = cuentaActiva();
   orden[boton.dataset.id] = (orden[boton.dataset.id] || 0) + 1;
+  guardarCuentas();
   vibrar();
   pintarOrden();
-});
+}
+$('botones-menu').addEventListener('click', agregar);
+$('botones-otros').addEventListener('click', agregar);
 
 $('orden-lista').addEventListener('click', (e) => {
   const boton = e.target.closest('button[data-accion]');
   if (!boton) return;
+  const { orden } = cuentaActiva();
   const id = boton.dataset.id;
   orden[id] = Math.max(0, (orden[id] || 0) + (boton.dataset.accion === 'mas' ? 1 : -1));
+  if (orden[id] === 0) delete orden[id];
+  guardarCuentas();
   vibrar();
   pintarOrden();
 });
 
+// "Borrar" cierra la cuenta completa sin cobrarla.
 $('btn-limpiar').addEventListener('click', () => {
-  if (totalOrden() === 0) return;
-  if (confirm('¿Borrar la orden actual?')) {
-    orden = {};
-    pintarOrden();
-  }
+  const cuenta = cuentaActiva();
+  const conProductos = tieneProductos(cuenta);
+  if (!conProductos && cuentas.length === 1) return;
+  if (conProductos && !confirm(`¿Cerrar la Cuenta ${cuenta.numero} sin cobrar? Se borrarán sus productos.`)) return;
+  cerrarCuenta(cuenta.numero);
+  pintarOrden();
+  mostrarAviso(`Cuenta ${cuenta.numero} cerrada`);
 });
 
 // ---------- Cobrar ----------
@@ -226,6 +322,7 @@ function cambiarMoneda(nueva) {
 }
 
 $('btn-cobrar').addEventListener('click', () => {
+  $('cobro-cuenta').textContent = `Cuenta ${activa}`;
   cambiarMoneda('MXN');
   $('dlg-cobrar').showModal();
 });
@@ -259,8 +356,8 @@ $('btn-confirmar-cobro').addEventListener('click', () => {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     fecha: new Date().toISOString(),
     // Se guarda el nombre y precio del momento, así cambiar el menú no altera ventas pasadas.
-    productos: menu.filter((p) => orden[p.id] > 0).map((p) => ({
-      id: p.id, nombre: p.nombre, precio: p.precio, cantidad: orden[p.id],
+    productos: productos().filter((p) => cuentaActiva().orden[p.id] > 0).map((p) => ({
+      id: p.id, nombre: p.nombre, precio: p.precio, cantidad: cuentaActiva().orden[p.id],
     })),
     total: c.total,
     moneda,
@@ -279,7 +376,7 @@ $('btn-confirmar-cobro').addEventListener('click', () => {
   }
 
   $('dlg-cobrar').close();
-  orden = {};
+  cerrarCuenta(activa);
   pintarOrden();
   mostrarAviso(venta.cambio > 0 ? `Venta guardada ✓  Cambio: ${pesos(venta.cambio)}` : 'Venta guardada ✓');
 });
@@ -325,7 +422,7 @@ function pintarVentas() {
   $('res-dolares').hidden = enDolares.length === 0;
   $('res-dolares').textContent = `Pagos en dólares: ${enDolares.length} ${enDolares.length === 1 ? 'venta' : 'ventas'} · ${dolares(usdRecibidos)} recibidos`;
 
-  // Mostrar siempre los productos del menú (aunque estén en 0), y además cualquiera vendido que ya no esté en el menú.
+  // Mostrar siempre los productos del menú (aunque estén en 0), y además cualquier otro artículo vendido ese día.
   const filas = menu.map((p) => ({ id: p.id, ...(r.porProducto.get(p.id) || { nombre: p.nombre, unidades: 0, monto: 0 }) }));
   for (const [id, datos] of r.porProducto) {
     if (!menu.some((p) => p.id === id)) filas.push({ id, ...datos });
@@ -397,6 +494,7 @@ $('form-tasa').addEventListener('submit', (e) => {
 
 function pintarAjustes() {
   pintarTasa();
+  pintarOtros();
   $('form-menu').innerHTML = menu.map((p, i) => `
     <div class="fila">
       <label class="campo">
@@ -425,6 +523,93 @@ $('form-menu').addEventListener('submit', (e) => {
     pintarOrden();
     mostrarAviso('Precios guardados ✓');
   }
+});
+
+// Otros artículos (bolsas, etc.): se agregan, editan y quitan aquí.
+function pintarOtros() {
+  const filas = extras.map((p, i) => `
+    <div class="fila fila-otro">
+      <label class="campo">
+        <span>${icono(p.id)} Nombre</span>
+        <input name="nombre-${i}" type="text" value="${escapar(p.nombre)}" required>
+      </label>
+      <label class="campo">
+        <span>Precio $</span>
+        <input name="precio-${i}" type="number" inputmode="decimal" min="0" step="0.5" value="${p.precio}" required>
+      </label>
+      <button class="quitar" type="button" data-indice="${i}" aria-label="Quitar ${escapar(p.nombre)}">
+        <svg class="icono"><use href="#icono-borrar"/></svg>
+      </button>
+    </div>`).join('');
+  $('form-otros').innerHTML = filas + `
+    <div class="fila fila-nueva">
+      <label class="campo">
+        <span>Nuevo artículo</span>
+        <input name="nuevo-nombre" type="text" placeholder="Ej. Bolsa" autocomplete="off">
+      </label>
+      <label class="campo">
+        <span>Precio $</span>
+        <input name="nuevo-precio" type="number" inputmode="decimal" min="0" step="0.5" placeholder="0">
+      </label>
+    </div>
+    <button id="btn-agregar-otro" class="btn btn-secundario btn-ancho" type="button">+ Agregar artículo</button>
+    ${extras.length ? '<button class="btn btn-principal btn-ancho" type="submit">Guardar cambios</button>' : ''}`;
+}
+
+// Lee lo que está escrito en las filas, para no perder cambios sin guardar al agregar o quitar.
+function otrosDelFormulario() {
+  const datos = new FormData($('form-otros'));
+  return extras.map((p, i) => {
+    const precio = parseFloat(datos.get(`precio-${i}`));
+    return {
+      ...p,
+      nombre: String(datos.get(`nombre-${i}`) || '').trim() || p.nombre,
+      precio: Number.isFinite(precio) && precio >= 0 ? precio : p.precio,
+    };
+  });
+}
+
+function guardarOtros(nuevos, aviso) {
+  if (!guardar(CLAVE_EXTRAS, nuevos)) return;
+  extras = nuevos;
+  pintarOtros();
+  pintarMenu();
+  pintarOrden();
+  mostrarAviso(aviso);
+}
+
+$('form-otros').addEventListener('submit', (e) => {
+  e.preventDefault();
+  guardarOtros(otrosDelFormulario(), 'Artículos guardados ✓');
+});
+
+$('form-otros').addEventListener('click', (e) => {
+  if (e.target.closest('#btn-agregar-otro')) {
+    const datos = new FormData($('form-otros'));
+    const nombre = String(datos.get('nuevo-nombre') || '').trim();
+    const precio = parseFloat(datos.get('nuevo-precio'));
+    if (!nombre) {
+      mostrarAviso('Escribe el nombre del artículo', true);
+      return;
+    }
+    if (!(Number.isFinite(precio) && precio >= 0)) {
+      mostrarAviso('Escribe el precio del artículo', true);
+      return;
+    }
+    const nuevo = { id: `extra-${Date.now().toString(36)}`, nombre, precio };
+    guardarOtros([...otrosDelFormulario(), nuevo], `${nombre} agregado ✓`);
+    return;
+  }
+
+  const quitar = e.target.closest('button.quitar');
+  if (!quitar) return;
+  const editados = otrosDelFormulario();
+  const articulo = editados[Number(quitar.dataset.indice)];
+  if (!articulo || !confirm(`¿Quitar "${articulo.nombre}"? Las ventas pasadas no cambian.`)) return;
+  // También se quita de las cuentas abiertas.
+  for (const c of cuentas) delete c.orden[articulo.id];
+  guardarCuentas();
+  guardarOtros(editados.filter((p) => p.id !== articulo.id), `${articulo.nombre} quitado`);
 });
 
 function campoCsv(valor) {

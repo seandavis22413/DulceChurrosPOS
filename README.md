@@ -4,12 +4,17 @@ Punto de venta sencillo para el teléfono. Registra cada venta de churros y malt
 
 ## Qué hace (versión 1)
 
-- **Vender:** botones grandes para Orden de Churros ($100), Churros con Helado ($120) y Malteada ($120). Ajusta cantidades con − / +.
+- **Cuentas:** hasta **3 cuentas abiertas** a la vez (Cuenta 1, 2, 3), en la parte de arriba de Vender. Toca **+** para abrir otra
+  y toca una cuenta para cambiar a ella. Cada cuenta muestra su total y se guarda en el teléfono aunque se cierre la app.
+  Al cobrar, esa cuenta se cierra. **Borrar** cierra la cuenta sin cobrarla (pide confirmación si tiene productos).
+- **Vender:** botones grandes para Orden de Churros ($100), Churros con Helado ($120) y Malteada ($120), y debajo,
+  en botones más pequeños, los **otros artículos** (bolsas, etc.). Ajusta cantidades con − / +.
 - **Cobrar:** muestra el total, el cliente elige con cuánto paga (Exacto, $200, $500…) y la app calcula el cambio.
   Si paga en **dólares**, toca *Dólares*: el total se convierte con el tipo de cambio guardado
   (redondeado hacia arriba al centavo), eliges el billete (US$5, US$10, US$20…) y la app calcula el **cambio en pesos**.
 - **Ventas:** número de órdenes, total vendido (en pesos), unidades por producto y cuántos dólares en efectivo se recibieron, por día (flechas ‹ › para ver días anteriores). Se puede borrar una venta hecha por error.
-- **Ajustes:** poner el **tipo de cambio** (1 dólar = X pesos), cambiar nombres y precios, descargar las ventas como CSV (se abre en Excel o Google Sheets) y borrar todo.
+- **Ajustes:** poner el **tipo de cambio** (1 dólar = X pesos), cambiar nombres y precios del menú,
+  **agregar, editar o quitar otros artículos** (quitar uno no cambia las ventas pasadas), descargar las ventas como CSV (se abre en Excel o Google Sheets) y borrar todo.
 - Funciona **sin internet** y se instala en la pantalla de inicio.
 - Los precios y totales son en pesos (MXN). Cada venta en dólares guarda el tipo de cambio que se usó,
   así cambiarlo después no altera ventas pasadas.
